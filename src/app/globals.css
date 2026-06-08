@@ -2,26 +2,162 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Google Fonts ────────────────────────────────────── */
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,500;0,600;0,700;0,800;1,400;1,500;1,600&family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* ─── CSS Custom Properties ──────────────────────────── */
 :root {
-  --background: #ffffff;
-  --foreground: #171717;
+  --brand-black: #0C0A09;
+  --brand-dark: #1C1917;
+  --brand-card: #1E1B19;
+  --gold-500: #D4AF37;
+  --gold-300: #F5D060;
+  --rose-400: #E8A0BF;
+  --cream: #FAF9F6;
+  --muted: #A8A29E;
+  --glass-border: rgba(255, 255, 255, 0.08);
+  --glass-bg: rgba(255, 255, 255, 0.03);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* ─── Base Styles ────────────────────────────────────── */
+html {
+  scroll-behavior: smooth;
 }
 
 body {
-  color: var(--foreground);
-  background: var(--background);
-  font-family: Arial, Helvetica, sans-serif;
+  color: var(--cream);
+  background: var(--brand-black);
+  font-family: 'Inter', system-ui, sans-serif;
+  overflow-x: hidden;
 }
 
+::selection {
+  background: rgba(212, 175, 55, 0.3);
+  color: #FAF9F6;
+}
+
+/* Scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--brand-black);
+}
+::-webkit-scrollbar-thumb {
+  background: rgba(212, 175, 55, 0.3);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(212, 175, 55, 0.5);
+}
+
+/* ─── Utility Classes ────────────────────────────────── */
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  /* Gradient text */
+  .text-gradient-gold {
+    background: linear-gradient(135deg, #D4AF37, #F5D060, #E8C547);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  /* Glassmorphism */
+  .glass {
+    background: rgba(255, 255, 255, 0.03);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+  }
+
+  .glass-strong {
+    background: rgba(28, 25, 23, 0.85);
+    backdrop-filter: blur(24px);
+    -webkit-backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+  }
+
+  /* Gold border glow */
+  .border-glow {
+    border: 1px solid rgba(212, 175, 55, 0.2);
+    box-shadow: 0 0 20px rgba(212, 175, 55, 0.05);
+  }
+
+  .border-glow-hover:hover {
+    border-color: rgba(212, 175, 55, 0.4);
+    box-shadow: 0 0 30px rgba(212, 175, 55, 0.1);
+  }
+
+  /* Shimmer button background */
+  .shimmer-bg {
+    background: linear-gradient(
+      110deg,
+      #D4AF37 0%,
+      #F5D060 25%,
+      #D4AF37 50%,
+      #F5D060 75%,
+      #D4AF37 100%
+    );
+    background-size: 200% 100%;
+  }
+
+  /* Section divider */
+  .section-divider {
+    height: 1px;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      rgba(212, 175, 55, 0.3),
+      transparent
+    );
+  }
+
+  /* Stagger animations */
+  .stagger-1 { animation-delay: 0.1s; }
+  .stagger-2 { animation-delay: 0.2s; }
+  .stagger-3 { animation-delay: 0.3s; }
+  .stagger-4 { animation-delay: 0.4s; }
+  .stagger-5 { animation-delay: 0.5s; }
+  .stagger-6 { animation-delay: 0.6s; }
+  .stagger-7 { animation-delay: 0.7s; }
+  .stagger-8 { animation-delay: 0.8s; }
+}
+
+/* ─── Component Styles ───────────────────────────────── */
+@layer components {
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3.5 
+           font-semibold text-brand-black rounded-full
+           shimmer-bg animate-shimmer
+           transition-all duration-300
+           hover:shadow-[0_0_30px_rgba(212,175,55,0.3)]
+           hover:scale-[1.02]
+           active:scale-[0.98];
+  }
+
+  .btn-outline {
+    @apply inline-flex items-center justify-center gap-2 px-7 py-3.5
+           font-semibold text-gold-500 rounded-full
+           border border-gold-500/30
+           transition-all duration-300
+           hover:bg-gold-500/10 hover:border-gold-500/60
+           active:scale-[0.98];
+  }
+
+  .input-field {
+    @apply w-full px-4 py-3 rounded-xl
+           bg-white/5 border border-white/10
+           text-cream placeholder:text-white/30
+           focus:outline-none focus:border-gold-500/50 focus:ring-1 focus:ring-gold-500/20
+           transition-all duration-300;
+  }
+
+  .card-hover {
+    @apply transition-all duration-500
+           hover:border-gold-500/20 hover:shadow-[0_8px_40px_rgba(212,175,55,0.08)]
+           hover:-translate-y-1;
   }
 }
