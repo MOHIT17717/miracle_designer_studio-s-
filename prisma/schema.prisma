@@ -1,0 +1,110 @@
+// Miracles Designer Studio – Database Schema
+// Provider: SQLite | ORM: Prisma 7
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+// ─── Categories ─────────────────────────────────────────
+model Category {
+  id          String    @id @default(cuid())
+  name        String    @unique
+  description String?
+  image       String?
+  sortOrder   Int       @default(0)
+  products    Product[]
+  createdAt   DateTime  @default(now())
+}
+
+// ─── Products ───────────────────────────────────────────
+model Product {
+  id          String         @id @default(cuid())
+  name        String
+  description String?
+  price       Float
+  salePrice   Float?
+  images      String         @default("[]") // JSON array of base64 / URL strings
+  categoryId  String
+  category    Category       @relation(fields: [categoryId], references: [id])
+  isNew       Boolean        @default(true)
+  isActive    Boolean        @default(true)
+  stock       Int            @default(0)
+  tags        String?        // JSON array
+  createdAt   DateTime       @default(now())
+  updatedAt   DateTime       @updatedAt
+  orderItems  OrderItem[]
+  offerItems  OfferProduct[]
+}
+
+// ─── Orders ─────────────────────────────────────────────
+model Order {
+  id            String      @id @default(cuid())
+  customerName  String
+  mobile        String
+  email         String?
+  address       String
+  city          String
+  pincode       String
+  status        String      @default("pending") // pending | confirmed | shipped | delivered | cancelled
+  totalAmount   Float
+  paymentStatus String      @default("unpaid") // unpaid | paid
+  notes         String?
+  items         OrderItem[]
+  createdAt     DateTime    @default(now())
+  updatedAt     DateTime    @updatedAt
+}
+
+model OrderItem {
+  id        String  @id @default(cuid())
+  orderId   String
+  order     Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+  quantity  Int
+  price     Float
+}
+
+// ─── Festival Offers ────────────────────────────────────
+model Offer {
+  id           String         @id @default(cuid())
+  title        String
+  description  String?
+  discount     Float          // percentage
+  festivalName String?
+  bannerImage  String?
+  startDate    DateTime
+  endDate      DateTime
+  isActive     Boolean        @default(true)
+  products     OfferProduct[]
+  createdAt    DateTime       @default(now())
+}
+
+model OfferProduct {
+  id        String  @id @default(cuid())
+  offerId   String
+  offer     Offer   @relation(fields: [offerId], references: [id], onDelete: Cascade)
+  productId String
+  product   Product @relation(fields: [productId], references: [id])
+
+  @@unique([offerId, productId])
+}
+
+// ─── Makeup Bookings ────────────────────────────────────
+model MakeupBooking {
+  id           String   @id @default(cuid())
+  customerName String
+  mobile       String
+  email        String?
+  serviceType  String   // bridal | party | engagement | photoshoot
+  date         DateTime
+  time         String
+  address      String?
+  notes        String?
+  status       String   @default("pending") // pending | confirmed | completed | cancelled
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
