@@ -2,6 +2,7 @@ services:
   - type: web
     name: miracles-backend
     env: node
+    plan: free
     buildCommand: npm install
     startCommand: npm run start:backend
     envVars:
