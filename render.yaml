@@ -3,7 +3,7 @@ services:
     name: miracles-backend
     env: node
     plan: free
-    buildCommand: npm install
+    buildCommand: npm install && npx prisma generate
     startCommand: npm run start:backend
     envVars:
       - key: PORT
