@@ -1,8 +1,14 @@
 'use client';
 
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 export default function Footer() {
+  const pathname = usePathname();
+
+  // Hide footer on admin and login pages
+  if (pathname.startsWith('/admin') || pathname === '/login') return null;
+
   return (
     <footer className="bg-brand-black border-t border-white/10 mt-20">
       {/* Top Gold Accent Bar */}

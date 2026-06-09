@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import { getProducts, getCategories, getOffers, Product, Category, Offer, formatPrice, getWhatsAppLink } from '@/lib/api';
 import { useCart } from '@/components/cart/CartProvider';
 import GlassCard from '@/components/ui/GlassCard';

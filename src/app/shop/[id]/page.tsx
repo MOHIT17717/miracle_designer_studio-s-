@@ -2,14 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { useParams, useRouter } from 'next/navigation';
+import { useParams } from 'next/navigation';
 import { getProduct, Product, formatPrice, getWhatsAppLink, parseTags } from '@/lib/api';
 import { useCart } from '@/components/cart/CartProvider';
-import GlassCard from '@/components/ui/GlassCard';
 
 export default function ProductDetailPage() {
   const params = useParams();
-  const router = useRouter();
   const id = params.id as string;
 
   const [product, setProduct] = useState<Product | null>(null);

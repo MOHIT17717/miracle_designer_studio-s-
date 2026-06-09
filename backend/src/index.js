@@ -7,7 +7,7 @@ const dotenv = require('dotenv');
 
 dotenv.config({ path: path.join(__dirname, '..', '..', '.env') });
 
-const { requireAdmin, adminLogin, adminLogout } = require('./middleware/adminAuth');
+const { requireAdmin, login, logout } = require('./middleware/adminAuth');
 
 const productRoutes = require('./routes/products');
 const orderRoutes = require('./routes/orders');
@@ -46,9 +46,9 @@ app.use('/api/bookings', requireAdmin, bookingsRoutes);
 app.use('/api/offers', requireAdmin, offersRoutes);
 app.use('/api/categories', requireAdmin, categoriesRoutes);
 
-// Admin login/logout (separate from protected routes)
-app.post('/api/admin/login', adminLogin);
-app.post('/api/admin/logout', adminLogout);
+// Auth login/logout
+app.post('/api/auth/login', login);
+app.post('/api/auth/logout', logout);
 
 app.use(errorHandler);
 

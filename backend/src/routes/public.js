@@ -170,4 +170,43 @@ router.post('/orders', async (req, res) => {
   }
 });
 
+// ─── Track Order (public – by order ID) ─────────────────
+router.get('/orders/:id', async (req, res) => {
+  try {
+    const order = await prisma.order.findUnique({
+      where: { id: req.params.id },
+      include: {
+        items: {
+          include: {
+            product: {
+              select: { id: true, name: true, images: true, categoryId: true },
+            },
+          },
+        },
+      },
+    });
+    if (!order) return res.status(404).json({ error: 'Order not found' });
+
+    // Return a safe subset — omit internal notes for public view
+    return res.json({
+      id: order.id,
+      customerName: order.customerName,
+      mobile: order.mobile,
+      email: order.email,
+      address: order.address,
+      city: order.city,
+      pincode: order.pincode,
+      status: order.status,
+      totalAmount: order.totalAmount,
+      paymentStatus: order.paymentStatus,
+      items: order.items,
+      createdAt: order.createdAt,
+      updatedAt: order.updatedAt,
+    });
+  } catch (err) {
+    console.error('[public/orders] track error:', err);
+    return res.status(500).json({ error: 'Failed to fetch order' });
+  }
+});
+
 module.exports = router;

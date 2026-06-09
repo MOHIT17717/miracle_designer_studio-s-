@@ -2,13 +2,16 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import { useCart } from '../cart/CartProvider';
+import { logout } from '@/lib/api';
 
 export default function Navbar() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
   const pathname = usePathname();
+  const router = useRouter();
   const { totalItems, setIsOpen: setIsCartOpen } = useCart();
 
   useEffect(() => {
@@ -19,11 +22,26 @@ export default function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    try {
+      await logout();
+      router.push('/login');
+    } catch (e) {
+      console.error(e);
+      setIsLoggingOut(false);
+    }
+  };
+
+  // Hide navbar on admin and login pages
+  if (pathname.startsWith('/admin') || pathname === '/login') return null;
+
   const navLinks = [
     { name: 'Home', href: '/' },
     { name: 'Shop', href: '/shop' },
     { name: 'Booking', href: '/booking' },
     { name: 'Offers', href: '/offers' },
+    { name: 'Track Order', href: '/orders/track' },
     { name: 'About', href: '/about' },
   ];
 
@@ -72,8 +90,25 @@ export default function Navbar() {
           })}
         </div>
 
-        {/* Cart + Mobile Action */}
+        {/* Cart + Mobile Action + Profile/Signout */}
         <div className="flex items-center gap-4">
+          {/* Profile / Sign Out */}
+          <div className="hidden md:flex items-center gap-4 border-r border-white/10 pr-4 mr-2">
+            <span className="text-white/50 text-sm flex items-center gap-2" title="My Profile">
+              <svg className="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+              Profile
+            </span>
+            <button
+              onClick={handleLogout}
+              disabled={isLoggingOut}
+              className="text-xs font-semibold text-rose-400 hover:text-rose-300 uppercase tracking-widest transition-colors disabled:opacity-50"
+            >
+              {isLoggingOut ? 'Signing out...' : 'Sign Out'}
+            </button>
+          </div>
+
           {/* Cart Icon */}
           <button
             onClick={() => setIsCartOpen(true)}
@@ -118,7 +153,26 @@ export default function Navbar() {
           isMobileMenuOpen ? 'translate-x-0' : 'translate-x-full'
         }`}
       >
-        <div className="flex flex-col p-8 space-y-6">
+        <div className="flex flex-col p-8 space-y-6 h-full overflow-y-auto">
+          {/* Profile Section Mobile */}
+          <div className="flex items-center gap-3 pb-6 border-b border-white/10">
+            <div className="w-12 h-12 rounded-full bg-white/5 border border-white/10 flex items-center justify-center">
+              <svg className="w-6 h-6 text-white/50" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
+              </svg>
+            </div>
+            <div>
+              <p className="text-sm font-medium text-cream tracking-wider uppercase">My Profile</p>
+              <button
+                onClick={handleLogout}
+                disabled={isLoggingOut}
+                className="text-xs font-semibold text-rose-400 hover:text-rose-300 tracking-widest mt-1 disabled:opacity-50"
+              >
+                {isLoggingOut ? 'SIGNING OUT...' : 'SIGN OUT'}
+              </button>
+            </div>
+          </div>
+
           {navLinks.map((link) => {
             const isActive = pathname === link.href;
             return (
@@ -139,7 +193,7 @@ export default function Navbar() {
               setIsMobileMenuOpen(false);
               setIsCartOpen(true);
             }}
-            className="btn-gold w-full text-center mt-4"
+            className="btn-gold w-full text-center mt-auto mb-10"
           >
             View Cart ({totalItems})
           </button>

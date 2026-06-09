@@ -1,8 +1,12 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
 import { getWhatsAppLink } from '@/lib/api';
 
 export default function WhatsAppButton() {
+  const pathname = usePathname();
+  if (pathname.startsWith('/admin') || pathname === '/login') return null;
+
   const link = getWhatsAppLink('Hi! I\'m interested in Miracles Designer Studio services.');
 
   return (

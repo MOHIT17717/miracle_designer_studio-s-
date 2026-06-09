@@ -1,14 +1,22 @@
 const jwt = require('jsonwebtoken');
-const bcrypt = require('bcryptjs');
 
-const ADMIN_COOKIE_NAME = 'admin_token';
+const AUTH_COOKIE_NAME = 'auth_token';
+
+// Hardcoded credentials as requested by user
+const USERS = {
+  '7418634741': { password: '802546', role: 'admin' },
+  '9043758382': { password: '123456', role: 'user' },
+};
 
 function requireAdmin(req, res, next) {
   try {
-    const token = req.cookies?.[ADMIN_COOKIE_NAME];
+    const token = req.cookies?.[AUTH_COOKIE_NAME];
     if (!token) return res.status(401).json({ error: 'Unauthorized' });
 
     const payload = jwt.verify(token, process.env.ADMIN_JWT_SECRET);
+    if (payload.role !== 'admin') {
+      return res.status(403).json({ error: 'Forbidden: Admin access required' });
+    }
     req.admin = payload;
     return next();
   } catch (e) {
@@ -16,40 +24,41 @@ function requireAdmin(req, res, next) {
   }
 }
 
-async function adminLogin(req, res) {
-  const { password } = req.body || {};
-  if (!password) return res.status(400).json({ error: 'Password required' });
+async function login(req, res) {
+  const { mobile, password } = req.body || {};
+  if (!mobile || !password) return res.status(400).json({ error: 'Mobile and password required' });
 
-  const secretHash = process.env.ADMIN_PASSWORD_HASH;
-  const secret = process.env.ADMIN_JWT_SECRET;
-  if (!secretHash || !secret) {
-    return res.status(500).json({ error: 'Admin not configured' });
+  const user = USERS[mobile];
+  if (!user || user.password !== password) {
+    return res.status(401).json({ error: 'Invalid credentials' });
   }
 
-  const ok = await bcrypt.compare(password, secretHash);
-  if (!ok) return res.status(401).json({ error: 'Invalid credentials' });
+  const secret = process.env.ADMIN_JWT_SECRET;
+  if (!secret) {
+    return res.status(500).json({ error: 'Auth not configured' });
+  }
 
-  const token = jwt.sign({ role: 'admin' }, secret, { expiresIn: '7d' });
+  const token = jwt.sign({ mobile, role: user.role }, secret, { expiresIn: '7d' });
 
-  // Cookie security: for production put HTTPS + proper domain.
-  res.cookie(ADMIN_COOKIE_NAME, token, {
+  res.cookie(AUTH_COOKIE_NAME, token, {
     httpOnly: true,
     sameSite: 'lax',
     secure: process.env.NODE_ENV === 'production',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   });
 
-  return res.json({ ok: true });
+  return res.json({ ok: true, role: user.role });
 }
 
-function adminLogout(req, res) {
-  res.clearCookie(ADMIN_COOKIE_NAME);
+function logout(req, res) {
+  res.clearCookie(AUTH_COOKIE_NAME);
   return res.json({ ok: true });
 }
 
 module.exports = {
   requireAdmin,
-  adminLogin,
-  adminLogout,
+  login,
+  logout,
+  AUTH_COOKIE_NAME,
 };
 

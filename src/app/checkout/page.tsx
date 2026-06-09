@@ -3,7 +3,7 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { useCart } from '@/components/cart/CartProvider';
-import { createOrder, OrderData, formatPrice } from '@/lib/api';
+import { createOrder, OrderData, formatPrice, getWhatsAppLink } from '@/lib/api';
 import SectionHeading from '@/components/ui/SectionHeading';
 import GlassCard from '@/components/ui/GlassCard';
 
@@ -21,7 +21,7 @@ export default function CheckoutPage() {
   });
 
   const [submitting, setSubmitting] = useState(false);
-  const [orderId, setOrderId] = useState<string | null>(null);
+  const [orderResult, setOrderResult] = useState<{ id: string; total: number; name: string; mobile: string } | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   const handleInputChange = (
@@ -48,13 +48,30 @@ export default function CheckoutPage() {
 
     try {
       const res = await createOrder(orderData);
-      setOrderId(res.id);
+      setOrderResult({
+        id: res.id,
+        total: res.totalAmount,
+        name: formData.customerName,
+        mobile: formData.mobile,
+      });
       clearCart();
     } catch (err: any) {
       setError(err?.message || 'Failed to place the order. Please try again.');
     } finally {
       setSubmitting(false);
     }
+  };
+
+  // Build WhatsApp message with order details
+  const getPaymentWhatsAppLink = () => {
+    if (!orderResult) return '#';
+    const msg = `🛍️ *Miracles Designer Studio – Order Payment*\n\n` +
+      `Order ID: ${orderResult.id}\n` +
+      `Customer: ${orderResult.name}\n` +
+      `Mobile: ${orderResult.mobile}\n` +
+      `Total Amount: ${formatPrice(orderResult.total)}\n\n` +
+      `Hi, I have placed an order and would like to make the payment. Please share the payment QR code. 🙏`;
+    return getWhatsAppLink(msg);
   };
 
   return (
@@ -64,40 +81,95 @@ export default function CheckoutPage() {
         subtitle="Confirm your purchase order and provide delivery instructions for shipping your designer clothing."
       />
 
-      {orderId ? (
-        <div className="max-w-xl mx-auto text-center space-y-6">
-          <GlassCard className="p-8 border border-gold-500/20 text-center space-y-6">
-            <div className="w-16 h-16 bg-gold-500/10 border border-gold-500/30 rounded-full flex items-center justify-center mx-auto text-gold-500 text-3xl">
-              ✓
+      {orderResult ? (
+        /* ─── Order Success + WhatsApp Payment Flow ────────────── */
+        <div className="max-w-2xl mx-auto space-y-8">
+          <GlassCard className="p-8 md:p-10 border border-gold-500/20 text-center space-y-8">
+            {/* Success Icon */}
+            <div className="w-20 h-20 bg-gradient-to-br from-green-500/20 to-emerald-500/10 border-2 border-green-500/40 rounded-full flex items-center justify-center mx-auto">
+              <svg className="w-10 h-10 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M5 13l4 4L19 7" />
+              </svg>
             </div>
-            <h3 className="font-display text-2xl font-bold text-cream">Order Placed Successfully!</h3>
-            <p className="text-white/60 font-light text-sm leading-relaxed">
-              Your order has been recorded in our database. We are preparing your designer creations for dispatch.
-            </p>
-            <div className="p-4 bg-white/5 rounded-xl border border-white/5 text-left space-y-2">
-              <p className="text-xs text-white/40">Order Reference ID:</p>
-              <p className="font-mono text-gold-500 font-bold text-base truncate">{orderId}</p>
+
+            <div className="space-y-2">
+              <h3 className="font-display text-3xl font-bold text-cream">Order Placed Successfully!</h3>
+              <p className="text-white/50 font-light text-sm leading-relaxed max-w-md mx-auto">
+                Your order has been recorded. Complete the payment via WhatsApp to confirm your order.
+              </p>
             </div>
-            <p className="text-xs text-white/40 leading-relaxed">
-              Our styling team will reach out to you on <strong>{formData.mobile}</strong> to share shipment details and tracking codes.
-            </p>
-            <div className="pt-4">
-              <Link href="/shop" className="btn-gold px-8 py-3 text-sm">
-                Continue Shopping
+
+            {/* Order Reference */}
+            <div className="p-5 bg-white/5 rounded-2xl border border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-xs text-white/40 uppercase tracking-wider">Order Reference</span>
+                <span className="text-xs text-white/40 uppercase tracking-wider">Total</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-gold-500 font-bold text-sm truncate max-w-[200px]">{orderResult.id}</span>
+                <span className="text-gradient-gold font-bold text-xl">{formatPrice(orderResult.total)}</span>
+              </div>
+            </div>
+
+            {/* Payment Steps */}
+            <div className="text-left space-y-4">
+              <h4 className="text-cream font-semibold text-sm uppercase tracking-wider text-center">How to Complete Payment</h4>
+              <div className="space-y-3">
+                {[
+                  { step: 1, text: 'Click the "Pay via WhatsApp" button below', icon: '📱' },
+                  { step: 2, text: 'Send the pre-filled message to our team', icon: '💬' },
+                  { step: 3, text: 'We\'ll share a payment QR code with you', icon: '📷' },
+                  { step: 4, text: 'Make the payment and share the screenshot', icon: '✅' },
+                  { step: 5, text: 'We\'ll verify and confirm your order', icon: '🎉' },
+                ].map((item) => (
+                  <div key={item.step} className="flex items-start gap-4 p-3 rounded-xl bg-white/[0.02] border border-white/5">
+                    <div className="w-8 h-8 rounded-full bg-gold-500/10 border border-gold-500/20 flex items-center justify-center text-gold-500 font-bold text-xs flex-shrink-0">
+                      {item.step}
+                    </div>
+                    <div className="flex items-center gap-2 pt-1">
+                      <span className="text-lg">{item.icon}</span>
+                      <span className="text-white/70 text-sm font-light">{item.text}</span>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col sm:flex-row gap-4 pt-2">
+              <a
+                href={getPaymentWhatsAppLink()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="btn-gold flex-1 text-center py-4 rounded-xl uppercase tracking-wider text-sm font-bold gap-3"
+              >
+                <span>💬</span> Pay via WhatsApp
+              </a>
+              <Link
+                href={`/orders/track?id=${orderResult.id}`}
+                className="btn-outline flex-1 text-center py-4 rounded-xl uppercase tracking-wider text-sm font-bold"
+              >
+                Track Order
               </Link>
             </div>
           </GlassCard>
+
+          <p className="text-center text-white/30 text-xs">
+            Save your Order Reference ID. You can track your order status anytime at{' '}
+            <Link href="/orders/track" className="text-gold-500 hover:text-gold-300 underline">Track Order</Link>.
+          </p>
         </div>
       ) : items.length === 0 ? (
         <div className="max-w-md mx-auto text-center space-y-6 py-12">
-          <p className="text-white/40 text-lg">You do not have any items in your checkout cart.</p>
+          <div className="w-20 h-20 mx-auto rounded-full bg-white/5 border border-white/10 flex items-center justify-center text-3xl">🛒</div>
+          <p className="text-white/40 text-lg">Your cart is empty</p>
           <Link href="/shop" className="btn-gold px-8">
-            Go to Shop
+            Browse Collection
           </Link>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
-          {/* Left Column: Form (8 Columns) */}
+          {/* Left Column: Form (7 Columns) */}
           <div className="lg:col-span-7">
             <GlassCard className="p-8 border border-white/5 bg-gradient-to-b from-brand-dark to-brand-black">
               <form onSubmit={handleSubmit} className="space-y-6">
@@ -222,7 +294,7 @@ export default function CheckoutPage() {
 
           {/* Right Column: Order Summary (5 Columns) */}
           <div className="lg:col-span-5">
-            <GlassCard className="p-6 border border-white/5 space-y-6">
+            <GlassCard className="p-6 border border-white/5 space-y-6 sticky top-28">
               <h3 className="font-display font-bold text-cream text-xl tracking-tight border-b border-white/10 pb-3">
                 Order Summary
               </h3>
@@ -252,6 +324,17 @@ export default function CheckoutPage() {
                   <span className="text-cream font-semibold">Grand Total</span>
                   <span className="text-gradient-gold font-bold text-xl">{formatPrice(totalAmount)}</span>
                 </div>
+              </div>
+
+              {/* Payment Info */}
+              <div className="p-4 bg-gold-500/5 border border-gold-500/15 rounded-xl space-y-2">
+                <div className="flex items-center gap-2">
+                  <span className="text-sm">💬</span>
+                  <span className="text-gold-500 text-xs font-semibold uppercase tracking-wider">WhatsApp Payment</span>
+                </div>
+                <p className="text-white/40 text-xs leading-relaxed">
+                  After placing the order, you will be redirected to WhatsApp to complete payment via QR code shared by our team.
+                </p>
               </div>
             </GlassCard>
           </div>

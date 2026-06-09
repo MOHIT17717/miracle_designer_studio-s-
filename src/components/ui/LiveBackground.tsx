@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { usePathname } from 'next/navigation';
 
 interface Sparkle {
   id: number;
@@ -12,6 +13,7 @@ interface Sparkle {
 }
 
 export default function LiveBackground() {
+  const pathname = usePathname();
   const [sparkles, setSparkles] = useState<Sparkle[]>([]);
 
   useEffect(() => {
@@ -26,6 +28,9 @@ export default function LiveBackground() {
     }));
     setSparkles(items);
   }, []);
+
+  // Hide on admin and login pages
+  if (pathname.startsWith('/admin') || pathname === '/login') return null;
 
   return (
     <div className="fixed inset-0 pointer-events-none overflow-hidden z-0">

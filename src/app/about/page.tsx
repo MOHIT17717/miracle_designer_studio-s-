@@ -3,7 +3,6 @@
 import { useState } from 'react';
 import SectionHeading from '@/components/ui/SectionHeading';
 import GlassCard from '@/components/ui/GlassCard';
-import { getWhatsAppLink } from '@/lib/api';
 
 export default function AboutPage() {
   const [formData, setFormData] = useState({

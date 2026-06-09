@@ -7,6 +7,7 @@
     "dev:full": "concurrently --names NEXT,API --prefix-colors blue,green \"next dev\" \"node backend/src/index.js\"",
     "build": "next build",
     "start": "next start",
+    "start:backend": "node backend/src/index.js",
     "lint": "next lint",
     "seed": "node backend/src/seed.js"
   },
