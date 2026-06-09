@@ -15,6 +15,7 @@ const adminRoutes = require('./routes/admin');
 const publicRoutes = require('./routes/public');
 const bookingsRoutes = require('./routes/bookings');
 const offersRoutes = require('./routes/offers');
+const categoriesRoutes = require('./routes/categories');
 
 const { createRequestId } = require('./middleware/requestId');
 const { errorHandler } = require('./middleware/errorHandler');
@@ -43,6 +44,7 @@ app.use('/api/products', requireAdmin, productRoutes);
 app.use('/api/orders', requireAdmin, orderRoutes);
 app.use('/api/bookings', requireAdmin, bookingsRoutes);
 app.use('/api/offers', requireAdmin, offersRoutes);
+app.use('/api/categories', requireAdmin, categoriesRoutes);
 
 // Admin login/logout (separate from protected routes)
 app.post('/api/admin/login', adminLogin);

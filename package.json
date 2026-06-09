@@ -4,9 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
+    "dev:full": "concurrently --names NEXT,API --prefix-colors blue,green \"next dev\" \"node backend/src/index.js\"",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "seed": "node backend/src/seed.js"
   },
   "dependencies": {
     "@prisma/adapter-better-sqlite3": "^7.8.0",
@@ -33,6 +35,7 @@
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-dom": "^18",
+    "concurrently": "^10.0.3",
     "eslint": "^8",
     "eslint-config-next": "14.2.35",
     "postcss": "^8",
